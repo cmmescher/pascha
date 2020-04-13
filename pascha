@@ -19,11 +19,12 @@
 # Contact <pascha@mescher.faith> for bug reporting.
 
 year=""
+byzyear=""
 y=0
+byz=0
 s=0
 
 jul=0
-byz=0
 greg=0
 ns=0
 
@@ -121,14 +122,19 @@ shift_date () {
 }
 
 byzantine_year () {
-    let "year += 5508"
+    let "byzyear = year + 5508"
+    [ ${month} -gt 08 ] && let "byzyear++"
+    return 0
 }
 
 print () {
     local output="${month}-${day}"
 
-    { (( "${y}" )) || (( "${byz}" )); } && ! (( "${s}" )) &&
+    (( ${y} )) && ! (( ${byz} )) && ! (( ${s} )) &&
         output="${output}-${year}"
+
+    (( ${byz} )) && ! (( ${s} )) && byzantine_year &&
+        output="${output}-${byzyear}"
 
     (( ${verbose} )) && output="${name}: ${output}"
 
@@ -143,8 +149,6 @@ calculate_easter () {
             julian ${year}
 
     (( "${ns}" )) && julian_to_gregorian
-
-    (( "${byz}" )) && byzantine_year
 }
 
 shift_and_print () {
