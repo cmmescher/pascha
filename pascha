@@ -92,7 +92,7 @@ julian_to_gregorian () {
     (( ${offset_year} )) && (( ${feb29} )) && let "year += 4" && year_offset="-4 year"
 
 
-    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" -u +"%F")
+    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)
 }
 
 shift_date_jul () {
@@ -104,7 +104,7 @@ shift_date_jul () {
 
     (( ${offset_year} )) && let "year += 4"
 
-    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day" -u +"%F")
+    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)
 
     (( ${offset_year} )) && let "year -= 4"
 }
@@ -112,7 +112,7 @@ shift_date_jul () {
 shift_date_greg () {
     local offset=$1
 
-    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day" -u +"%F")
+    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)
 }
 
 shift_date () {
@@ -142,7 +142,7 @@ print () {
 }
 
 calculate_easter () {
-    ! (( "${y}" )) && year="$(date -u +"%Y")"
+    ! (( "${y}" )) && year="$(date +%Y)"
 
     (( "${greg}" )) && ! (( "${jul}" )) &&
         gregorian ${year} ||
