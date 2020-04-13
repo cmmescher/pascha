@@ -8,6 +8,10 @@ Pascha is a simple shell script to calculate and display the date of Pascha
 sudo make install
 ```
 
+## Dependencies
+
+- `date` -- get current date information and convert dates.
+
 ## Usage
 
 `pascha` prints out the date of Pascha (Easter). By default it prints the date of
