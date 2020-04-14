@@ -53,6 +53,10 @@ Please see `man pascha` for more information.
 or other Unix-like operating systems, but it may not. If you do get it to run on
 any of these, please let me know, so this can be updated.
 
+## Version
+
+1.0
+
 ## Author
 
 Written by Christopher Michael Mescher orginally in 2020.
