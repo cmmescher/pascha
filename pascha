@@ -257,7 +257,7 @@ days_until () {
     set_diff_dates
     diff_dates
 
-    [ ${output} -lt 0 ] && date_next_pascha
+    ! (( ${y})) && [ ${output} -lt 0 ] && date_next_pascha
 
     (( ${verbose} )) && output="${name}: ${output}"
 
