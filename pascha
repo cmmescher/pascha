@@ -42,7 +42,9 @@ asc=0
 pent=0
 x=0
 
-usage() { echo "Usage: $0 [-j|-J|-g] [-bsmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
+daysUntil=0
+
+usage() { echo "Usage: $0 [-j|-J|-g] [-bsdmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
 
 julian () {
     local y=$1
@@ -141,8 +143,8 @@ print () {
     echo ${output}
 }
 
-calculate_easter () {
-    ! (( "${y}" )) && year="$(date +%Y)"
+calculate_pascha () {
+    [ -z ${year} ] && year="$(date +%Y)"
 
     (( "${greg}" )) && ! (( "${jul}" )) &&
         gregorian ${year} ||
@@ -198,9 +200,72 @@ chronological_easter () {
     (( ${easter} )) && name="Easter" || name="Pascha"
     print
 }
+
+set_diff_dates_julian () {
+    let "offset=${year} / 100 - ${year} / 400 - 2"
+    local offset_year=0
+    local jan_feb=0
+    local feb29=0
+    local year_offset=""
+
+    ! (( $(( ${year} % 100 )) )) && (( $(( ${year} % 400 )) )) && offset_year=1
+    { [ ${month} -eq 01 ] || [ ${month} -eq 02 ]; } && jan_feb=1
+    [ ${month} -eq 02 ] && [ ${day} -eq 29 ] && feb29=1
+
+    (( ${offset_year} )) && (( ${jan_feb} )) && let "offset -= 1"
+    (( ${offset_year} )) && (( ${feb29} )) && let "year += 4" && year_offset="-4 year"
+
+
+    IFS=- read diffYear diffMonth diffDay <<< $(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)
+}
+
+set_diff_dates_gregorian () {
+    diffYear=${year}
+    diffMonth=${month}
+    diffDay=${day}
+}
+
+set_diff_dates () {
+    ! (( ${ns} )) && ! (( ${greg} )) && set_diff_dates_julian ||
+            set_diff_dates_gregorian
+}
+
+diff_dates () {
+    output=$(( ($(date -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/(60*60*24) ))
+}
+
+date_next_pascha () {
+    local monthPascha=${month}
+    local dayPascha=${day}
+
+    let "year++"
+    calculate_pascha
+    set_diff_dates
+    let "year--"
+    diff_dates
+
+    month=${monthPascha}
+    day=${dayPascha}
+
+}
+
+days_until () {
+    (( ${easter} )) && name="Days until Easter" || name="Days until Pascha"
+
+    set_diff_dates
+    diff_dates
+
+    [ ${output} -lt 0 ] && date_next_pascha
+
+    (( ${verbose} )) && output="${name}: ${output}"
+
+    echo ${output}
+}
+
 main () {
-    calculate_easter
+    calculate_pascha
     ! (( ${x} )) && print
+    (( ${daysUntil} )) && days_until
 
     (( ${meat} )) && meatfare
     (( ${cheese} )) && cheesefare
@@ -212,7 +277,7 @@ main () {
     (( ${pent} )) && pentecost
 }
 
-while getopts "jJgbsmcaMlApxXvVy:h" o; do
+while getopts "jJgbsdmcaMlApxXvVy:h" o; do
     case "${o}" in
         j)
             jul=1
@@ -229,6 +294,9 @@ while getopts "jJgbsmcaMlApxXvVy:h" o; do
             ;;
         s)
             s=1
+            ;;
+        d)
+            daysUntil=1
             ;;
         m)
             meat=1

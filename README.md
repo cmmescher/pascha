@@ -26,12 +26,13 @@ three options is given, then `-J` will have precedence, followed by
 `-j`, and lastly `-g`.
 
 `pascha` can also print out certain other dates, relative to Pascha for a given
-year. These are Meatfare (`-m`), Cheesefare (`-c`), Ash Wednesday
-(`-a`), the Midfeast of Pentecost (`-M`), the Leavetaking of Pascha
-(`-l`), the Ascension of our Lord (`-A`), and Pentecost (`-p`).
-By default these dates are printed out after the date of Pascha, but printing
-the date of Pascha can be surpressed with `-x`. The dates can also be
-printed in chronological order, rather than with Pascha first, using `-X`.
+year, and even the number of days until Pascha. These are Meatfare (`-m`),
+Cheesefare (`-c`), Ash Wednesday (`-a`), the Midfeast of Pentecost (`-M`), the
+Leavetaking of Pascha (`-l`), the Ascension of our Lord (`-A`), and Pentecost
+(`-p`). By default these dates are printed out after the date of Pascha, but
+printing the date of Pascha can be surpressed with `-x`. The dates can also be
+printed in chronological order, rather than with Pascha first, using `-X`. The
+days until Pascha can be printed using `-d`.
 
 By default, `pascha` will print out only the month and the day, if no year is
 specified. A year can be specified using `-y`. When specified the date of Pascha
