@@ -56,7 +56,7 @@ any of these, please let me know, so this can be updated.
 
 ## Version
 
-1.1
+1.2
 
 ## Author
 

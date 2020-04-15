@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 #
-# Version 1.1
+# Version 1.2
 #
 # pascha - the date of Pascha (Easter)
 # Copyright (C) 2020 Christopher Michael Mescher
@@ -45,14 +45,14 @@ pent=0
 x=0
 
 daysUntil=0
+weeksBetween=0
 
-usage() { echo "Usage: $0 [-j|-J|-g] [-bsdmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-j|-J|-g] [-bsdDmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
 
 julian () {
-    local y=$1
-    let "a = y % 4"
-    let "b = y % 7"
-    let "c = y % 19"
+    let "a = year % 4"
+    let "b = year % 7"
+    let "c = year % 19"
     let "d = (19 * c + 15) % 30"
     let "e = (2 * a + 4 * b - d + 34) % 7"
     let "month = (d + e + 114) / 31"
@@ -62,10 +62,9 @@ julian () {
 }
 
 gregorian () {
-    local y=$1
-    let "a = y % 19"
-    let "b = y / 100"
-    let "c = y % 100"
+    let "a = year % 19"
+    let "b = year / 100"
+    let "c = year % 100"
     let "d = b / 4"
     let "e = b % 4"
     let "f = (b + 8) / 25"
@@ -149,8 +148,8 @@ calculate_pascha () {
     [ -z ${year} ] && year="$(date +%Y)"
 
     (( "${greg}" )) && ! (( "${jul}" )) &&
-        gregorian ${year} ||
-            julian ${year}
+        gregorian ||
+            julian
 
     (( "${ns}" )) && julian_to_gregorian
 }
@@ -233,7 +232,7 @@ set_diff_dates () {
 }
 
 diff_dates () {
-    output=$(( ($(date -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/(60*60*24) ))
+    output=$(( ($(date -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/86400 ))
 }
 
 date_next_pascha () {
@@ -264,10 +263,38 @@ days_until () {
     echo ${output}
 }
 
+weeks_between () {
+    local monthPascha=${month}
+    local dayPascha=${day}
+    name="Weeks between calendars"
+
+    (( ${greg} )) && ! (( ${jul} )) && julian && julian_to_gregorian &&
+        monthJul=${month} && dayJul=${day} &&
+        monthGreg=${monthPascha} && dayGreg=${dayPascha} &&
+        month=${monthPascha} && day=${dayPascha}
+
+    (( ${ns} )) && gregorian &&
+        monthGreg=${month} && dayGreg=${day} &&
+        monthJul=${monthPascha} && dayJul=${dayPascha} &&
+        month=${monthPascha} && day=${dayPascha}
+
+    ! (( ${ns} )) && { ! (( ${greg} )) || (( ${jul} )); } && julian_to_gregorian &&
+        monthJul=${month} && dayJul=${day} && gregorian &&
+        monthGreg=${month} && dayGreg=${day} &&
+        month=${monthPascha} && day=${dayPascha}
+
+    output=$(( ($(date -d "${year}-${monthJul}-${dayJul}" +%s)- $(date -d "${year}-${monthGreg}-${dayGreg}" +%s))/86400/7 ))
+
+    (( ${verbose} )) && output="${name}: ${output}"
+
+    echo ${output}
+}
+
 main () {
     calculate_pascha
     ! (( ${x} )) && print
     (( ${daysUntil} )) && days_until
+    (( ${weeksBetween} )) && weeks_between
 
     (( ${meat} )) && meatfare
     (( ${cheese} )) && cheesefare
@@ -279,7 +306,7 @@ main () {
     (( ${pent} )) && pentecost
 }
 
-while getopts "jJgbsdmcaMlApxXvVy:h" o; do
+while getopts "jJgbsdDmcaMlApxXvVy:h" o; do
     case "${o}" in
         j)
             jul=1
@@ -299,6 +326,9 @@ while getopts "jJgbsdmcaMlApxXvVy:h" o; do
             ;;
         d)
             daysUntil=1
+            ;;
+        D)
+            weeksBetween=1
             ;;
         m)
             meat=1
