@@ -228,7 +228,7 @@ set_diff_dates_gregorian () {
 }
 
 set_diff_dates () {
-    ! (( ${ns} )) && ! (( ${greg} )) && set_diff_dates_julian ||
+    ! (( ${ns} )) && { ! (( ${greg} )) || (( ${jul} )); } && set_diff_dates_julian ||
             set_diff_dates_gregorian
 }
 
