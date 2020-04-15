@@ -14,8 +14,9 @@ sudo make install
 
 ## Usage
 
-`pascha` prints out the date of Pascha (Easter). By default it prints the date of
-Pascha for the current year, calculated and displayed using the Julian calendar.
+`pascha` prints out the date of Pascha (Easter). By default it prints the date
+of Pascha for the current year, calculated and displayed using the Julian
+calendar. It has no required arguments or options.
 
 If the `-J` option is given then the date will be displayed using the
 Revised Julian calendar instead, but still calculated using the Julian calendar.
@@ -25,15 +26,6 @@ Julian calendar both for display and calculation. If more than one of these
 three options is given, then `-J` will have precedence, followed by
 `-j`, and lastly `-g`.
 
-`pascha` can also print out certain other dates, relative to Pascha for a given
-year, and even the number of days until Pascha. These are Meatfare (`-m`),
-Cheesefare (`-c`), Ash Wednesday (`-a`), the Midfeast of Pentecost (`-M`), the
-Leavetaking of Pascha (`-l`), the Ascension of our Lord (`-A`), and Pentecost
-(`-p`). By default these dates are printed out after the date of Pascha, but
-printing the date of Pascha can be surpressed with `-x`. The dates can also be
-printed in chronological order, rather than with Pascha first, using `-X`. The
-days until Pascha can be printed using `-d`.
-
 By default, `pascha` will print out only the month and the day, if no year is
 specified. A year can be specified using `-y`. When specified the date of Pascha
 will be calculated for the given year, otherwise the current year is used. When
@@ -42,9 +34,20 @@ option is used. `pascha` can also use the Byzantine Calendar's Anno Mundi style
 year if given the `-b` option. In this case `pascha` will also print the year by
 default, even if `-y` is not used.
 
-`pascha` can print out the name associated with the date if given the `-v`
-option. The `-V` option is the same as `-v`, except it uses the name "Easter"
-rather than "Pascha."
+`pascha` can also print out certain other dates, relative to Pascha for a given
+year. These are Meatfare (`-m`), Cheesefare (`-c`), Ash Wednesday (`-a`), the
+Midfeast of Pentecost (`-M`), the Leavetaking of Pascha (`-l`), the Ascension of
+our Lord (`-A`), and Pentecost (`-p`). By default these dates are printed out
+after the date of Pascha, but printing the date of Pascha can be surpressed with
+`-x`. The dates can also be printed in chronological order, rather than with
+Pascha first, using `-X`.
+
+`pascha` can print the number of days until Pascha (`-d`) and the number of weeks
+between the Julian and Gregorian dates for Pascha (`-D`).
+
+If given the `-v` or `-V` options, `pascha` will print out the name associated
+with each date or calculation. The `-V` option is the same as `-v`, except it
+uses the name "Easter" rather than "Pascha."
 
 Please see `man pascha` for more information.
 
