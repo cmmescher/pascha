@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 # Version 1.2
 #
@@ -50,102 +50,102 @@ weeksBetween=0
 usage() { echo "Usage: $0 [-j|-J|-g] [-bsdDmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
 
 julian () {
-    let "a = year % 4"
-    let "b = year % 7"
-    let "c = year % 19"
-    let "d = (19 * c + 15) % 30"
-    let "e = (2 * a + 4 * b - d + 34) % 7"
-    let "month = (d + e + 114) / 31"
-    let "day = ((d + e + 114) % 31) + 1"
+    (( a = year % 4 ))
+    (( b = year % 7 ))
+    (( c = year % 19 ))
+    (( d = (19 * c + 15) % 30 ))
+    (( e = (2 * a + 4 * b - d + 34) % 7 ))
+    (( month = (d + e + 114) / 31 ))
+    (( day = ((d + e + 114) % 31) + 1 ))
     printf -v month "%02d" ${month}
     printf -v day "%02d" ${day}
 }
 
 gregorian () {
-    let "a = year % 19"
-    let "b = year / 100"
-    let "c = year % 100"
-    let "d = b / 4"
-    let "e = b % 4"
-    let "f = (b + 8) / 25"
-    let "g = (b - f + 1) / 3"
-    let "h = (19 * a + b - d - g + 15) % 30"
-    let "i = c / 4"
-    let "k = c % 4"
-    let "l = (32 + 2 * e + 2 * i - h - k) % 7"
-    let "m = (a + 11 * h + 22 * l) / 451"
-    let "month = (h + l - 7 * m + 114) / 31"
-    let "day = ((h + l - 7 * m + 114) % 31) + 1"
+    (( a = year % 19 ))
+    (( b = year / 100 ))
+    (( c = year % 100 ))
+    (( d = b / 4 ))
+    (( e = b % 4 ))
+    (( f = (b + 8) / 25 ))
+    (( g = (b - f + 1) / 3 ))
+    (( h = (19 * a + b - d - g + 15) % 30 ))
+    (( i = c / 4 ))
+    (( k = c % 4 ))
+    (( l = (32 + 2 * e + 2 * i - h - k) % 7 ))
+    (( m = (a + 11 * h + 22 * l) / 451 ))
+    (( month = (h + l - 7 * m + 114) / 31 ))
+    (( day = ((h + l - 7 * m + 114) % 31) + 1 ))
     printf -v month "%02d" ${month}
     printf -v day "%02d" ${day}
 }
 
 julian_to_gregorian () {
-    let "offset=${year} / 100 - ${year} / 400 - 2"
+    (( offset=year / 100 - year / 400 - 2 ))
     local offset_year=0
     local jan_feb=0
     local feb29=0
     local year_offset=""
 
-    ! (( $(( ${year} % 100 )) )) && (( $(( ${year} % 400 )) )) && offset_year=1
+    ! (( $(( year % 100 )) )) && (( $(( year % 400 )) )) && offset_year=1
     { [ ${month} -eq 01 ] || [ ${month} -eq 02 ]; } && jan_feb=1
     [ ${month} -eq 02 ] && [ ${day} -eq 29 ] && feb29=1
 
-    (( ${offset_year} )) && (( ${jan_feb} )) && let "offset -= 1"
-    (( ${offset_year} )) && (( ${feb29} )) && let "year += 4" && year_offset="-4 year"
+    (( offset_year )) && (( jan_feb )) && (( offset -= 1 ))
+    (( offset_year )) && (( feb29 )) && (( year += 4 )) && year_offset="-4 year"
 
 
-    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)
+    IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
 }
 
 shift_date_jul () {
     local offset=$1
     local offset_year=0
 
-    ! (( $(( ${year} % 100 )) )) && (( $(( ${year} % 400 )) )) &&
+    ! (( year % 100 )) && (( year % 400 )) &&
         offset_year=1
 
-    (( ${offset_year} )) && let "year += 4"
+    (( offset_year )) && (( year += 4 ))
 
-    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)
+    IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
 
-    (( ${offset_year} )) && let "year -= 4"
+    (( offset_year )) && (( year -= 4 ))
 }
 
 shift_date_greg () {
     local offset=$1
 
-    IFS=- read year month day <<< $(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)
+    IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
 }
 
 shift_date () {
-     ! (( ${jul} )) || (( ${ns} )) &&
-        shift_date_greg $1 ||
-            shift_date_jul $1
+     ! (( jul )) || (( ns )) &&
+        shift_date_greg "$1" ||
+            shift_date_jul "$1"
 }
 
 byzantine_year () {
-    let "byzyear = year + 5508"
-    [ ${month} -gt 08 ] && let "byzyear++"
+    (( byzyear = year + 5508 ))
+    [ "${month}" -gt 08 ] && (( byzyear++ ))
     return 0
 }
 
 print () {
     local output="${month}-${day}"
 
-    (( ${y} )) && ! (( ${byz} )) && ! (( ${s} )) &&
+    (( y )) && ! (( byz )) && ! (( s )) &&
         output="${output}-${year}"
 
-    (( ${byz} )) && ! (( ${s} )) && byzantine_year &&
+    (( byz )) && ! (( s )) && byzantine_year &&
         output="${output}-${byzyear}"
 
-    (( ${verbose} )) && output="${name}: ${output}"
+    (( verbose )) && output="${name}: ${output}"
 
-    echo ${output}
+    echo "${output}"
 }
 
 calculate_pascha () {
-    [ -z ${year} ] && year="$(date +%Y)"
+    [ -z "${year}" ] && year="$(date +%Y)"
 
     (( "${greg}" )) && ! (( "${jul}" )) &&
         gregorian ||
@@ -156,10 +156,10 @@ calculate_pascha () {
 
 shift_and_print () {
     local offset=$1
-    shift_date ${offset}
-    let "offset*=-1"
+    shift_date "${offset}"
+    (( offset*=-1 ))
     print
-    shift_date ${offset}
+    shift_date "${offset}"
 }
 
 meatfare () {
@@ -198,26 +198,26 @@ pentecost () {
 }
 
 chronological_easter () {
-    (( ${easter} )) && name="Easter" || name="Pascha"
+    (( easter )) && name="Easter" || name="Pascha"
     print
 }
 
 set_diff_dates_julian () {
-    let "offset=${year} / 100 - ${year} / 400 - 2"
+    (( offset=year / 100 - year / 400 - 2 ))
     local offset_year=0
     local jan_feb=0
     local feb29=0
     local year_offset=""
 
-    ! (( $(( ${year} % 100 )) )) && (( $(( ${year} % 400 )) )) && offset_year=1
-    { [ ${month} -eq 01 ] || [ ${month} -eq 02 ]; } && jan_feb=1
-    [ ${month} -eq 02 ] && [ ${day} -eq 29 ] && feb29=1
+    ! (( year % 100 )) && (( year % 400 )) && offset_year=1
+    { [ "${month}" -eq 01 ] || [ "${month}" -eq 02 ]; } && jan_feb=1
+    [ "${month}" -eq 02 ] && [ "${day}" -eq 29 ] && feb29=1
 
-    (( ${offset_year} )) && (( ${jan_feb} )) && let "offset -= 1"
-    (( ${offset_year} )) && (( ${feb29} )) && let "year += 4" && year_offset="-4 year"
+    (( offset_year )) && (( jan_feb )) && (( offset -= 1 ))
+    (( offset_year )) && (( feb29 )) && (( year += 4 )) && year_offset="-4 year"
 
 
-    IFS=- read diffYear diffMonth diffDay <<< $(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)
+    IFS=- read -r diffYear diffMonth diffDay <<< "$(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
 }
 
 set_diff_dates_gregorian () {
@@ -227,7 +227,7 @@ set_diff_dates_gregorian () {
 }
 
 set_diff_dates () {
-    ! (( ${ns} )) && { ! (( ${greg} )) || (( ${jul} )); } && set_diff_dates_julian ||
+    ! (( ns )) && { ! (( greg )) || (( jul )); } && set_diff_dates_julian ||
             set_diff_dates_gregorian
 }
 
@@ -239,10 +239,10 @@ date_next_pascha () {
     local monthPascha=${month}
     local dayPascha=${day}
 
-    let "year++"
+    (( year++ ))
     calculate_pascha
     set_diff_dates
-    let "year--"
+    (( year-- ))
     diff_dates
 
     month=${monthPascha}
@@ -251,16 +251,16 @@ date_next_pascha () {
 }
 
 days_until () {
-    (( ${easter} )) && name="Days until Easter" || name="Days until Pascha"
+    (( easter )) && name="Days until Easter" || name="Days until Pascha"
 
     set_diff_dates
     diff_dates
 
-    ! (( ${y})) && [ ${output} -lt 0 ] && date_next_pascha
+    ! (( y )) && [ ${output} -lt 0 ] && date_next_pascha
 
-    (( ${verbose} )) && output="${name}: ${output}"
+    (( verbose )) && output="${name}: ${output}"
 
-    echo ${output}
+    echo "${output}"
 }
 
 weeks_between () {
@@ -268,42 +268,42 @@ weeks_between () {
     local dayPascha=${day}
     name="Weeks between calendars"
 
-    (( ${greg} )) && ! (( ${jul} )) && julian && julian_to_gregorian &&
+    (( greg )) && ! (( jul )) && julian && julian_to_gregorian &&
         monthJul=${month} && dayJul=${day} &&
         monthGreg=${monthPascha} && dayGreg=${dayPascha} &&
         month=${monthPascha} && day=${dayPascha}
 
-    (( ${ns} )) && gregorian &&
+    (( ns )) && gregorian &&
         monthGreg=${month} && dayGreg=${day} &&
         monthJul=${monthPascha} && dayJul=${dayPascha} &&
         month=${monthPascha} && day=${dayPascha}
 
-    ! (( ${ns} )) && { ! (( ${greg} )) || (( ${jul} )); } && julian_to_gregorian &&
+    ! (( ns )) && { ! (( greg )) || (( jul )); } && julian_to_gregorian &&
         monthJul=${month} && dayJul=${day} && gregorian &&
         monthGreg=${month} && dayGreg=${day} &&
         month=${monthPascha} && day=${dayPascha}
 
     output=$(( ($(date -d "${year}-${monthJul}-${dayJul}" +%s)- $(date -d "${year}-${monthGreg}-${dayGreg}" +%s))/86400/7 ))
 
-    (( ${verbose} )) && output="${name}: ${output}"
+    (( verbose )) && output="${name}: ${output}"
 
-    echo ${output}
+    echo "${output}"
 }
 
 main () {
     calculate_pascha
-    ! (( ${x} )) && print
-    (( ${daysUntil} )) && days_until
-    (( ${weeksBetween} )) && weeks_between
+    ! (( x )) && print
+    (( daysUntil )) && days_until
+    (( weeksBetween )) && weeks_between
 
-    (( ${meat} )) && meatfare
-    (( ${cheese} )) && cheesefare
-    (( ${ash} )) && ash_wednesday
-    (( ${chron} )) && chronological_easter
-    (( ${mid} )) && midfeast
-    (( ${leave} )) && leavetaking
-    (( ${asc} )) && ascension
-    (( ${pent} )) && pentecost
+    (( meat )) && meatfare
+    (( cheese )) && cheesefare
+    (( ash )) && ash_wednesday
+    (( chron )) && chronological_easter
+    (( mid )) && midfeast
+    (( leave )) && leavetaking
+    (( asc )) && ascension
+    (( pent )) && pentecost
 }
 
 while getopts "jJgbsdDmcaMlApxXvVy:h" o; do
