@@ -20,21 +20,34 @@
 #
 # Contact <pascha@mescher.faith> for bug reporting.
 
+### Set variables for options and other initial values
+
+# Year flags and values
 year=""
 byzyear=""
 y=0
 byz=0
 s=0
 
+# Calendar for calculation and display
 jul=0
 greg=0
 ns=0
 
+# Default name for verbose output and flags
 name="Pascha"
 verbose=0
-chron=0
 easter=0
 
+# Chronological display and output supression
+chron=0
+x=0
+
+# Optional calculation flags
+daysUntil=0
+weeksBetween=0
+
+# Optional date flags
 meat=0
 cheese=0
 ash=0
@@ -42,13 +55,13 @@ mid=0
 leave=0
 asc=0
 pent=0
-x=0
 
-daysUntil=0
-weeksBetween=0
+### Function definitions
 
 usage() { echo "Usage: $0 [-j|-J|-g] [-bsdDmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
 
+# Calculates the month and day of Julian Pascha,
+# setting ${month} and ${day}
 julian () {
     (( a = year % 4 ))
     (( b = year % 7 ))
@@ -61,6 +74,8 @@ julian () {
     printf -v day "%02d" ${day}
 }
 
+# Calculates the month and day of Gregorian Pascha,
+# setting ${month} and ${day}
 gregorian () {
     (( a = year % 19 ))
     (( b = year / 100 ))
@@ -80,6 +95,7 @@ gregorian () {
     printf -v day "%02d" ${day}
 }
 
+# Converts ${month} and ${day} from the Julian to Gregorian calendar
 julian_to_gregorian () {
     (( offset=year / 100 - year / 400 - 2 ))
     local offset_year=0
@@ -98,6 +114,8 @@ julian_to_gregorian () {
     IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
 }
 
+# Shifts ${year}, ${month}, ${day} by ${1} days,
+# according to the Julian calendar
 shift_date_jul () {
     local offset=$1
     local offset_year=0
@@ -112,24 +130,34 @@ shift_date_jul () {
     (( offset_year )) && (( year -= 4 ))
 }
 
+# Shifts ${year}, ${month}, ${day} by ${1} days,
+# according to the Gregorian calendar
 shift_date_greg () {
     local offset=$1
 
     IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
 }
 
+# Shifts ${year}, ${month}, ${day} by ${1} days,
+# choosing the appropriate calendar
 shift_date () {
      ! (( jul )) || (( ns )) &&
         shift_date_greg "$1" ||
             shift_date_jul "$1"
 }
 
+# Calculates the Byzantine style A.M. year,
+# setting ${byzyear}
 byzantine_year () {
     (( byzyear = year + 5508 ))
     [ "${month}" -gt 08 ] && (( byzyear++ ))
     return 0
 }
 
+# Prints the currently calculated date,
+# using ${month}, ${day}, and
+# optionally ${year} or ${byzyear}, and
+# optionally ${name} with verbose output
 print () {
     local output="${month}-${day}"
 
@@ -144,6 +172,8 @@ print () {
     echo "${output}"
 }
 
+# Calculates the date of Pascha,
+# according to the specified calendar for calculation and display
 calculate_pascha () {
     [ -z "${year}" ] && year="$(date +%Y)"
 
@@ -154,6 +184,8 @@ calculate_pascha () {
     (( "${ns}" )) && julian_to_gregorian
 }
 
+# Shifts the currently calculated date by ${1} days,
+# prints the result, and returns to the original date
 shift_and_print () {
     local offset=$1
     shift_date "${offset}"
@@ -197,11 +229,16 @@ pentecost () {
     shift_and_print 49
 }
 
-chronological_easter () {
+# Prints Pascha in its chronological location
+chronological_pascha () {
     (( easter )) && name="Easter" || name="Pascha"
     print
 }
 
+# Sets the varibles for calculating days until Pascha,
+# when the date is calculated and displayed using the Julian calendar
+# This effectively sets ${diffYear}, ${diffMonth}, and ${diffDay}
+# to the Gregorian equivalent to ${year}, ${month}, and ${day}
 set_diff_dates_julian () {
     (( offset=year / 100 - year / 400 - 2 ))
     local offset_year=0
@@ -220,21 +257,28 @@ set_diff_dates_julian () {
     IFS=- read -r diffYear diffMonth diffDay <<< "$(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
 }
 
+# Sets the variables for calculating days until Pascha,
+# when using the Gregorian calendar for either calculation or display
 set_diff_dates_gregorian () {
     diffYear=${year}
     diffMonth=${month}
     diffDay=${day}
 }
 
+# Sets the variables for calculating days until Pascha,
+# using the appropriate method based on the calendar used
 set_diff_dates () {
     ! (( ns )) && { ! (( greg )) || (( jul )); } && set_diff_dates_julian ||
             set_diff_dates_gregorian
 }
 
+# Calculates the days between the current date
+# and the date set by ${diffYear}, ${diffMonth}, and ${diffDay}
 diff_dates () {
     output=$(( ($(date -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/86400 ))
 }
 
+# Calculates the days until Pascha for next year, from the current date
 date_next_pascha () {
     local monthPascha=${month}
     local dayPascha=${day}
@@ -250,6 +294,9 @@ date_next_pascha () {
 
 }
 
+# Calculates the days until Pascha from the current date
+# if Pascha has already past for the current year,
+# it calculates the days until Pascha next year
 days_until () {
     (( easter )) && name="Days until Easter" || name="Days until Pascha"
 
@@ -263,6 +310,8 @@ days_until () {
     echo "${output}"
 }
 
+# Calculates the number of weeks between the Julian and Gregorian
+# dates for Pascha according to the ${year}
 weeks_between () {
     local monthPascha=${month}
     local dayPascha=${day}
@@ -290,6 +339,7 @@ weeks_between () {
     echo "${output}"
 }
 
+# Calculates and prints the appropriate dates according to the options
 main () {
     calculate_pascha
     ! (( x )) && print
@@ -299,12 +349,14 @@ main () {
     (( meat )) && meatfare
     (( cheese )) && cheesefare
     (( ash )) && ash_wednesday
-    (( chron )) && chronological_easter
+    (( chron )) && chronological_pascha
     (( mid )) && midfeast
     (( leave )) && leavetaking
     (( asc )) && ascension
     (( pent )) && pentecost
 }
+
+### Option parsing
 
 while getopts "jJgbsdDmcaMlApxXvVy:h" o; do
     case "${o}" in
