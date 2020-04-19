@@ -5,12 +5,16 @@ Pascha is a simple shell script to calculate and display the date of Pascha
 ## Installation
 
 ``` sh
+git clone https://gitlab.com/cmmescher/pascha
+cd pascha
 sudo make install
 ```
 
 ## Dependencies
 
-- `date` -- get current date information and convert dates.
+- `bash` -- run the script (`sh` will not work).
+- `date` (from `coreutils`, or equivalent) -- get current date information and
+  convert dates.
 
 ## Usage
 
@@ -18,13 +22,13 @@ sudo make install
 of Pascha for the current year, calculated and displayed using the Julian
 calendar. It has no required arguments or options.
 
-If the `-J` option is given then the date will be displayed using the
-Revised Julian calendar instead, but still calculated using the Julian calendar.
-With `-g` the date will be both calculated and displayed using the
-Gregorian calendar. The `-j` option has the default behavior, using the
-Julian calendar both for display and calculation. If more than one of these
-three options is given, then `-J` will have precedence, followed by
-`-j`, and lastly `-g`.
+If the `-J` option is given then the date will be displayed using the Gregorian
+calendar (which is the same as the Revised Julian until 28 February 2800)
+instead, but still calculated using the Julian calendar. With `-g` the date will
+be both calculated and displayed using the Gregorian calendar. The `-j` option
+has the default behavior, using the Julian calendar both for display and
+calculation. If more than one of these three options is given, then `-J` will
+have precedence, followed by `-j`, and lastly `-g`.
 
 By default, `pascha` will print out only the month and the day, if no year is
 specified. A year can be specified using `-y`. When specified the date of Pascha
@@ -61,6 +65,8 @@ any of these, please let me know, so this can be updated.
 
 1.2
 
+First released publicly on Pascha 2020 (April 19, 2020 N.S.)
+
 ## Author
 
 Written by Christopher Michael Mescher orginally in 2020.
@@ -74,4 +80,5 @@ License [GPLv3+](https://gnu.org/licenses/gpl.html)
 ## Project status
 
 The project is mostly complete. No new features are planned, but bugs can be
-reported to pascha AT mescher.faith and they will be worked on.
+reported to `echo \<pascha-mescher+faith\>|sed s/\+/./g\;s/\-/@/` and they will
+be worked on.

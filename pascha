@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Contact <pascha@mescher.faith> for bug reporting.
+# Contact !(echo \<pascha-mescher+faith\>|sed s/\+/./g\;s/\-/@/) for bug
+# reporting.
 
 ### Set variables for options and other initial values
 
