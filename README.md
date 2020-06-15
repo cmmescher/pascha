@@ -10,10 +10,32 @@ cd pascha
 sudo make install
 ```
 
+If you are running MacOS or any BSD variant, make sure you have the GNU
+coreutils (or another date program equivalent to GNU date) installed and
+available to be run as `gdate`.
+
+For **MacOS** you can do this by running these commands.
+
+- First ensure that you have Homebrew installed (see [brew.sh](https://brew.sh) for more
+information).
+
+``` sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+```
+
+- Then install the GNU coreutils.
+
+``` sh
+brew install coreutils
+```
+
+I assume anyone running any BSD variant can install the GNU coreutils without
+instructions.
+
 ## Dependencies
 
 - `bash` -- run the script (`sh` will not work).
-- `date` (from `coreutils`, or equivalent) -- get current date information and
+- `date` (from GNU `coreutils`, or equivalent) -- get current date information and
   convert dates.
 
 ## Usage
@@ -63,7 +85,7 @@ any of these, please let me know, so this can be updated.
 
 ## Version
 
-1.2
+1.3
 
 First released publicly on Pascha 2020 (April 19, 2020 N.S.)
 

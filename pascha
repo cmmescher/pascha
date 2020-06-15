@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Version 1.2
+# Version 1.3
 #
 # pascha - the date of Pascha (Easter)
 # Copyright (C) 2020 Christopher Michael Mescher
@@ -57,6 +57,17 @@ leave=0
 asc=0
 pent=0
 
+# Check the system type
+case "${OSTYPE}" in
+    *linux*) DATE_CMD="date" ;;
+    *cygwin*) DATE_CMD="date" ;;
+    *) DATE_CMD="gdate" ;;
+esac
+
+# Check if proper date program is installed
+
+hash "${DATE_CMD}" 2>/dev/null || { echo "Please ensure the GNU coreutils are installed and GNU date can be run as \"${DATE_CMD}\"" && exit 1; }
+
 ### Function definitions
 
 usage() { echo "Usage: $0 [-j|-J|-g] [-bsdDmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
@@ -112,7 +123,7 @@ julian_to_gregorian () {
     (( offset_year )) && (( feb29 )) && (( year += 4 )) && year_offset="-4 year"
 
 
-    IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
+    IFS=- read -r year month day <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
 }
 
 # Shifts ${year}, ${month}, ${day} by ${1} days,
@@ -126,7 +137,7 @@ shift_date_jul () {
 
     (( offset_year )) && (( year += 4 ))
 
-    IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
+    IFS=- read -r year month day <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
 
     (( offset_year )) && (( year -= 4 ))
 }
@@ -136,7 +147,7 @@ shift_date_jul () {
 shift_date_greg () {
     local offset=$1
 
-    IFS=- read -r year month day <<< "$(date -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
+    IFS=- read -r year month day <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
 }
 
 # Shifts ${year}, ${month}, ${day} by ${1} days,
@@ -176,7 +187,7 @@ print () {
 # Calculates the date of Pascha,
 # according to the specified calendar for calculation and display
 calculate_pascha () {
-    [ -z "${year}" ] && year="$(date +%Y)"
+    [ -z "${year}" ] && year="$(${DATE_CMD} +%Y)"
 
     (( "${greg}" )) && ! (( "${jul}" )) &&
         gregorian ||
@@ -255,7 +266,7 @@ set_diff_dates_julian () {
     (( offset_year )) && (( feb29 )) && (( year += 4 )) && year_offset="-4 year"
 
 
-    IFS=- read -r diffYear diffMonth diffDay <<< "$(date -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
+    IFS=- read -r diffYear diffMonth diffDay <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
 }
 
 # Sets the variables for calculating days until Pascha,
@@ -276,7 +287,7 @@ set_diff_dates () {
 # Calculates the days between the current date
 # and the date set by ${diffYear}, ${diffMonth}, and ${diffDay}
 diff_dates () {
-    output=$(( ($(date -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/86400 ))
+    output=$(( ($(${DATE_CMD} -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/86400 ))
 }
 
 # Calculates the days until Pascha for next year, from the current date
@@ -333,7 +344,7 @@ weeks_between () {
         monthGreg=${month} && dayGreg=${day} &&
         month=${monthPascha} && day=${dayPascha}
 
-    output=$(( ($(date -d "${year}-${monthJul}-${dayJul}" +%s)- $(date -d "${year}-${monthGreg}-${dayGreg}" +%s))/86400/7 ))
+    output=$(( ($(${DATE_CMD} -d "${year}-${monthJul}-${dayJul}" +%s)- $(${DATE_CMD} -d "${year}-${monthGreg}-${dayGreg}" +%s))/86400/7 ))
 
     (( verbose )) && output="${name}: ${output}"
 
