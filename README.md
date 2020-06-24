@@ -10,7 +10,7 @@ cd pascha
 sudo make install
 ```
 
-If you are running MacOS or any BSD variant, make sure you have the GNU
+If you are running **MacOS** or any **BSD** variant, make sure you have the GNU
 coreutils (or another date program equivalent to GNU date) installed and
 available to be run as `gdate`.
 
@@ -31,6 +31,8 @@ brew install coreutils
 
 I assume anyone running any BSD variant can install the GNU coreutils without
 instructions.
+
+For users of **Arch**-based distributions, Pascha is available on the AUR as [pascha-git](https://aur.archlinux.org/packages/pascha-git).
 
 ## Dependencies
 
@@ -79,7 +81,7 @@ Please see `man pascha` for more information.
 
 ## Compatibility
 
-`pascha` has only been tested on GNU+Linux systems. It may work on MacOS, BSD,
+Pascha has only been tested on GNU+Linux systems. It may work on MacOS, BSD,
 or other Unix-like operating systems, but it may not. If you do get it to run on
 any of these, please let me know, so this can be updated.
 
