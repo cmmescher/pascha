@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
-# Version 1.3
+# Version 2.0
 #
 # pascha - the date of Pascha (Easter)
-# Copyright (C) 2020 Christopher Michael Mescher
+# Copyright (C) 2020, 2021 Christopher Michael Mescher
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,144 +26,325 @@
 # Year flags and values
 year=""
 byzyear=""
-y=0
-byz=0
-s=0
+useyear=""
+byz=""
+s=""
 
-# Calendar for calculation and display
-jul=0
-greg=0
-ns=0
+# Calendar for calculation
+jul=""
+greg=""
+
+# Calendar for display
+julDisp=""
+rJulDisp=""
+gregDisp=""
 
 # Default name for verbose output and flags
 name="Pascha"
-verbose=0
-easter=0
+verbose=""
+easter=""
+
+# Output separator default falue
+sep=-
+
+# Date conversion values
+jdn=""
 
 # Chronological display and output supression
-chron=0
-x=0
+chron=""
+x=""
 
 # Optional calculation flags
-daysUntil=0
-weeksBetween=0
+daysUntil=""
+weeksBetween=""
 
 # Optional date flags
-meat=0
-cheese=0
-ash=0
-mid=0
-leave=0
-asc=0
-pent=0
-
-# Check the system type
-case "${OSTYPE}" in
-    *linux*) DATE_CMD="date" ;;
-    *cygwin*) DATE_CMD="date" ;;
-    *) DATE_CMD="gdate" ;;
-esac
-
-# Check if proper date program is installed
-
-hash "${DATE_CMD}" 2>/dev/null || { echo "Please ensure the GNU coreutils are installed and GNU date can be run as \"${DATE_CMD}\"" && exit 1; }
+meat=""
+cheese=""
+ash=""
+mid=""
+leave=""
+asc=""
+pent=""
 
 ### Function definitions
 
-usage() { echo "Usage: $0 [-j|-J|-g] [-bsdDmcaMlApxXvV] [-y <YEAR>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-j|-g] [-J|-R|-G] [-bsdDmcaMlApxXvV] [-s <SEP>] [-y <YEAR>]" 1>&2; exit 1; }
+
+##
+## Functions for date calulation
+##
 
 # Calculates the month and day of Julian Pascha,
 # setting ${month} and ${day}
 julian () {
-    (( a = year % 4 ))
-    (( b = year % 7 ))
-    (( c = year % 19 ))
-    (( d = (19 * c + 15) % 30 ))
-    (( e = (2 * a + 4 * b - d + 34) % 7 ))
-    (( month = (d + e + 114) / 31 ))
-    (( day = ((d + e + 114) % 31) + 1 ))
-    printf -v month "%02d" ${month}
-    printf -v day "%02d" ${day}
+    a=$(( year % 4 ))
+    b=$(( year % 7 ))
+    c=$(( year % 19 ))
+    d=$(( (19 * c + 15) % 30 ))
+    e=$(( (2 * a + 4 * b - d + 34) % 7 ))
+    month=$(( (d + e + 114) / 31 ))
+    day=$(( ((d + e + 114) % 31) + 1 ))
 }
 
 # Calculates the month and day of Gregorian Pascha,
 # setting ${month} and ${day}
 gregorian () {
-    (( a = year % 19 ))
-    (( b = year / 100 ))
-    (( c = year % 100 ))
-    (( d = b / 4 ))
-    (( e = b % 4 ))
-    (( f = (b + 8) / 25 ))
-    (( g = (b - f + 1) / 3 ))
-    (( h = (19 * a + b - d - g + 15) % 30 ))
-    (( i = c / 4 ))
-    (( k = c % 4 ))
-    (( l = (32 + 2 * e + 2 * i - h - k) % 7 ))
-    (( m = (a + 11 * h + 22 * l) / 451 ))
-    (( month = (h + l - 7 * m + 114) / 31 ))
-    (( day = ((h + l - 7 * m + 114) % 31) + 1 ))
-    printf -v month "%02d" ${month}
-    printf -v day "%02d" ${day}
+    a=$(( year % 19 ))
+    b=$(( year / 100 ))
+    c=$(( year % 100 ))
+    d=$(( b / 4 ))
+    e=$(( b % 4 ))
+    f=$(( (b + 8) / 25 ))
+    g=$(( (b - f + 1) / 3 ))
+    h=$(( (19 * a + b - d - g + 15) % 30 ))
+    i=$(( c / 4 ))
+    k=$(( c % 4 ))
+    l=$(( (32 + 2 * e + 2 * i - h - k) % 7 ))
+    m=$(( (a + 11 * h + 22 * l) / 451 ))
+    month=$(( (h + l - 7 * m + 114) / 31 ))
+    day=$(( ((h + l - 7 * m + 114) % 31) + 1 ))
 }
 
-# Converts ${month} and ${day} from the Julian to Gregorian calendar
-julian_to_gregorian () {
-    (( offset=year / 100 - year / 400 - 2 ))
-    local offset_year=0
-    local jan_feb=0
-    local feb29=0
-    local year_offset=""
+##
+## Functions for calendar conversion
+##
 
-    ! (( $(( year % 100 )) )) && (( $(( year % 400 )) )) && offset_year=1
-    { [ ${month} -eq 01 ] || [ ${month} -eq 02 ]; } && jan_feb=1
-    [ ${month} -eq 02 ] && [ ${day} -eq 29 ] && feb29=1
+# Calculates the Revised Julian date ${year}, ${month}, and ${day}
+# based on the Julian day number ${jdn}
+jdn_to_RevJulian () {
+    day=$(( jdn - 1721120 ))
+    ai=$(( 9 * day + 2 ))
+    a=$(( ai / 328718 ))
 
-    (( offset_year )) && (( jan_feb )) && (( offset -= 1 ))
-    (( offset_year )) && (( feb29 )) && (( year += 4 )) && year_offset="-4 year"
+    if [ $ai -lt 0 ] && [ $(( ai % 328718 )) -ne 0 ]; then a=$(( a - 1 )); fi
+    a2=$(( (a + 3) / 9 ))
+    if [ $a -lt -3 ] && [ $(( a % 9 )) -ne -3 ]; then a2=$(( a2 - 1 )); fi
+    a3=$(( (a + 7) / 9 ))
+    if [ $a -lt -7 ] && [ $(( a % 9 )) -ne -7 ]; then a3=$(( a3 - 1 )); fi
 
+    day=$(( day + a - a2 - a3 ))
 
-    IFS=- read -r year month day <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
+    yeari=$(( 4 * day + 3 ))
+    year=$(( yeari / 1461 ))
+    if [ $yeari -lt 0 ] && [ $(( yeari % 1461 )) -ne 0 ]; then year=$(( year - 1 )); fi
+
+    y=$(( 1461 * year / 4 ))
+    if [ $year -lt 0 ] && [ $(( 1461 * year % 4 )) -ne 0 ]; then y=$(( y - 1 )); fi
+    day=$(( day - y ))
+
+    monthi=$(( 5 * day + 2 ))
+    month=$(( monthi / 153 ))
+    if [ $monthi -lt 0 ] && [ $(( monthi % 153 )) -ne 0 ]; then month=$(( month - 1 )); fi
+
+    day2i=$(( 153 * month + 2 ))
+    day2=$(( day2i / 5 ))
+    if [ $day2i -lt 0 ] && [ $(( day2i % 5 )) -ne 0 ]; then day2=$(( day2 - 1 )); fi
+    day=$(( day - day2 + 1))
+
+    month=$(( month + 3 ))
+    if [ $month -gt 12 ]
+    then
+        month=$(( month - 12 ))
+        year=$(( year + 1 ))
+    fi
 }
 
-# Shifts ${year}, ${month}, ${day} by ${1} days,
-# according to the Julian calendar
-shift_date_jul () {
-    local offset=$1
-    local offset_year=0
+# Calculates the Julian day number ${jdn}
+# for the Gregorian ${year}, ${month}, and ${day}
+gregorian_to_JDN () {
+    y=$year
+    m=$month
 
-    ! (( year % 100 )) && (( year % 400 )) &&
-        offset_year=1
+    if [ $y -lt 0 ]
+    then
+        cycles=$(( y / 400 - 1 ))
+        if [ $(( y % 400 )) -eq 0 ]; then cycles=$(( cycles + 1 )); fi
+        y=$(( (400 - (-1 * y % 400)) % 400 ))
+    else
+        cycles=$(( year / 400 ))
+        y=$(( y % 400 ))
+    fi
 
-    (( offset_year )) && (( year += 4 ))
+    if [ $m -lt 3 ]
+    then
+        y=$(( y - 1 ))
+        m=$(( m + 12 ))
+    fi
 
-    IFS=- read -r year month day <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
+    if [ $y -lt 0 ] && [ $(( y % 4 )) -ne 0 ]
+    then
+        jdn=$(( 365 * y + (y / 4 - 1) ))
+    else
+        jdn=$(( 365 * y + y / 4 ))
+    fi
 
-    (( offset_year )) && (( year -= 4 ))
+    jdn=$(( jdn + 153 * (m + 1) / 5 + day - 123 ))
+
+    if [ $y -lt 0 ]
+    then
+        if [ $(( y % 100 )) -ne 0 ]
+        then
+            if [ $(( y % 400 )) -ne 0 ]
+            then
+                jdn=$(( jdn - (y / 100 - 1) + (y / 400 - 1)  ))
+            else
+                jdn=$(( jdn - (y / 100 - 1) + y / 400  ))
+            fi
+        else
+            if [ $(( y % 400 )) -ne 0 ]
+            then
+                jdn=$(( jdn - y / 100 + (y / 400 - 1)  ))
+            else
+                jdn=$(( jdn - y / 100 + y / 400  ))
+            fi
+        fi
+    else
+        jdn=$(( jdn - y / 100 + y / 400 ))
+    fi
+
+    jdn=$(( jdn + 1721120 + 146097 * cycles ))
 }
 
-# Shifts ${year}, ${month}, ${day} by ${1} days,
-# according to the Gregorian calendar
-shift_date_greg () {
-    local offset=$1
+# Calculates the Gregorian date ${year}, ${month}, and ${day}
+# based on the Julian day number ${jdn}
+jdn_to_Gregorian () {
+    day=$(( jdn - 1721120 ))
+    if [ $day -lt 0 ]
+    then
+        cycles=$(( day / 146097 - 1 ))
+        if [ $(( day % 146097 )) -eq 0 ]; then cycles=$(( cycles + 1 )); fi
+        day=$(( (146097 - (-1 * day % 146097)) % 146097  ))
+    else
+        cycles=$(( day / 146097 ))
+        day=$(( day % 146097 ))
+    fi
 
-    IFS=- read -r year month day <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day" +%Y-%m-%d)"
+    a=$(( (4 * day + 3) / 146097 ))
+    day=$(( day + a - a / 4 ))
+
+    year=$(( (4 * day + 3) / 1461 ))
+    day=$(( day - 1461 * year / 4 ))
+    month=$(( (5 * day + 2) / 153 ))
+    day=$(( day - (153 * month + 2) / 5 ))
+    day=$(( day + 1 ))
+    month=$(( month + 3 ))
+
+    if [ $month -gt 12 ]
+    then
+        month=$(( month - 12 ))
+        year=$(( year + 1 ))
+    fi
+
+    year=$(( year + 400 * cycles ))
 }
 
-# Shifts ${year}, ${month}, ${day} by ${1} days,
-# choosing the appropriate calendar
-shift_date () {
-     ! (( jul )) || (( ns )) &&
-        shift_date_greg "$1" ||
-            shift_date_jul "$1"
+# Calculates the Julian day number ${jdn}
+# for the Gregorian ${year}, ${month}, and ${day}
+julian_to_JDN () {
+    y=$year
+    m=$month
+
+    if [ $y -lt 0 ]
+    then
+        cycles=$(( y / 4 - 1 ))
+        if [ $(( y % 4 )) -eq 0 ]; then cycles=$(( cycles + 1 )); fi
+        y=$(( (4 - (-1 * y % 4)) % 4 ))
+    else
+        cycles=$(( year / 4 ))
+        y=$(( y % 4 ))
+    fi
+
+    if [ $m -lt 3 ]
+    then
+        y=$(( y - 1 ))
+        m=$(( m + 12 ))
+    fi
+
+    if [ $y -lt 0 ] && [ $(( y % 4 )) -ne 0 ]
+    then
+        jdn=$(( 365 * y + (y / 4 - 1) ))
+    else
+        jdn=$(( 365 * y + y / 4 ))
+    fi
+
+    jdn=$(( jdn + 153 * (m + 1) / 5 + day - 123 ))
+
+    jdn=$(( jdn + 1721118 + 1461 * cycles ))
 }
+
+# Calculates the Julian date ${year}, ${month}, and ${day}
+# based on the Julian day number ${jdn}
+jdn_to_Julian () {
+    day=$(( jdn - 1721118 ))
+    if [ $day -lt 0 ]
+    then
+        cycles=$(( day / 1461 - 1 ))
+        if [ $(( day % 1461 )) -eq 0 ]; then cycles=$(( cycles + 1 )); fi
+        day=$(( (1461 - (-1 * day % 1461)) % 1461  ))
+    else
+        cycles=$(( day / 1461 ))
+        day=$(( day % 1461 ))
+    fi
+
+    year=$(( (4 * day + 3) / 1461 ))
+    day=$(( day - 1461 * year / 4 ))
+    month=$(( (5 * day + 2) / 153 ))
+    day=$(( day - (153 * month + 2) / 5 ))
+    day=$(( day + 1 ))
+    month=$(( month + 3 ))
+
+    if [ $month -gt 12 ]
+    then
+        month=$(( month - 12 ))
+        year=$(( year + 1 ))
+    fi
+
+    year=$(( year + 4 * cycles ))
+}
+
+# Calculates the ${jdn} based upon the calculation calendar
+get_JDN () {
+    if [ -n "$jul" ]; then julian_to_JDN; else gregorian_to_JDN; fi
+}
+
+# Calculates the ${jdn} if it will be needed
+get_JDN_If_Necessary () {
+    if [ -n "$daysUntil" ] || [ -n "$weeksBetween" ] || [ -n "$meat" ] ||
+           [ -n "$cheese" ] || [ -n "$ash" ] || [ -n "$mid" ] || [ -n "$leave" ] ||
+           [ -n "$asc" ] || [ -n "$pent" ] || [ -n "$chron" ]
+    then get_JDN
+    elif [ -n "$jul" ] && [ -z "$julDisp" ]
+    then get_JDN
+    elif [ -n "$greg" ] && [ -z "$gregDisp" ]
+    then get_JDN
+    fi
+}
+
+# Calculates the output date on the display calendar based on the ${jdn}
+jdn_to_Output () {
+    if [ -n "$julDisp" ]; then jdn_to_Julian
+    elif [ -n "$rJulDisp" ]; then jdn_to_RevJulian
+    else jdn_to_Gregorian
+    fi
+}
+
+##
+## Functions for output and calculation control
+##
 
 # Calculates the Byzantine style A.M. year,
 # setting ${byzyear}
 byzantine_year () {
-    (( byzyear = year + 5508 ))
-    [ "${month}" -gt 08 ] && (( byzyear++ ))
+    byzyear=$(( year + 5508 ))
+    [ "${month}" -gt 08 ] && byzyear=$(( byzyear + 1 ))
     return 0
+}
+
+# Calculates the date of Pascha,
+# according to the specified calendar for calculation
+calculate_pascha () {
+    if [ -n "$jul" ]; then julian; else gregorian; fi
 }
 
 # Prints the currently calculated date,
@@ -171,40 +352,44 @@ byzantine_year () {
 # optionally ${year} or ${byzyear}, and
 # optionally ${name} with verbose output
 print () {
-    local output="${month}-${day}"
+    month=$(printf "%02d" $month)
+    day=$(printf "%02d" $day)
+    output="${month}${sep}${day}"
 
-    (( y )) && ! (( byz )) && ! (( s )) &&
-        output="${output}-${year}"
+    [ -n "$useyear" ] && [ -z "$byz" ] && [ -z "$s" ] &&
+        output="${output}${sep}${year}"
 
-    (( byz )) && ! (( s )) && byzantine_year &&
-        output="${output}-${byzyear}"
+    [ -n "$byz" ] && [ -z "$s" ] && byzantine_year &&
+        output="${output}${sep}${byzyear}"
 
-    (( verbose )) && output="${name}: ${output}"
+    [ -n "$verbose" ] && output="${name}: ${output}"
 
     echo "${output}"
 }
 
-# Calculates the date of Pascha,
-# according to the specified calendar for calculation and display
-calculate_pascha () {
-    [ -z "${year}" ] && year="$(${DATE_CMD} +%Y)"
-
-    (( "${greg}" )) && ! (( "${jul}" )) &&
-        gregorian ||
-            julian
-
-    (( "${ns}" )) && julian_to_gregorian
+# Gets the display date for the display calendar when it differs
+# from the calculation calendar
+get_Display () {
+    if [ -n "$jul" ] && [ -n "$julDisp" ]; then :
+    elif [ -n "$greg" ] && [ -n "$gregDisp" ]; then :
+    else jdn_to_Output
+    fi
 }
 
 # Shifts the currently calculated date by ${1} days,
-# prints the result, and returns to the original date
+# calculates and prints the result, and returns to the original ${jdn}
+# without recalculating the associated original date
 shift_and_print () {
-    local offset=$1
-    shift_date "${offset}"
-    (( offset*=-1 ))
+    origJDN=$jdn
+    jdn=$(( jdn + $1 ))
+    jdn_to_Output
     print
-    shift_date "${offset}"
+    jdn=$origJDN
 }
+
+##
+## Other date calculations
+##
 
 meatfare () {
     name="Meatfare"
@@ -243,81 +428,54 @@ pentecost () {
 
 # Prints Pascha in its chronological location
 chronological_pascha () {
-    (( easter )) && name="Easter" || name="Pascha"
+    [ -n "$easter" ] && name="Easter" || name="Pascha"
+    jdn_to_Output
     print
 }
 
-# Sets the varibles for calculating days until Pascha,
-# when the date is calculated and displayed using the Julian calendar
-# This effectively sets ${diffYear}, ${diffMonth}, and ${diffDay}
-# to the Gregorian equivalent to ${year}, ${month}, and ${day}
-set_diff_dates_julian () {
-    (( offset=year / 100 - year / 400 - 2 ))
-    local offset_year=0
-    local jan_feb=0
-    local feb29=0
-    local year_offset=""
-
-    ! (( year % 100 )) && (( year % 400 )) && offset_year=1
-    { [ "${month}" -eq 01 ] || [ "${month}" -eq 02 ]; } && jan_feb=1
-    [ "${month}" -eq 02 ] && [ "${day}" -eq 29 ] && feb29=1
-
-    (( offset_year )) && (( jan_feb )) && (( offset -= 1 ))
-    (( offset_year )) && (( feb29 )) && (( year += 4 )) && year_offset="-4 year"
-
-
-    IFS=- read -r diffYear diffMonth diffDay <<< "$(${DATE_CMD} -d "${year}-${month}-${day} +${offset} day ${year_offset}" +%Y-%m-%d)"
-}
-
-# Sets the variables for calculating days until Pascha,
-# when using the Gregorian calendar for either calculation or display
-set_diff_dates_gregorian () {
-    diffYear=${year}
-    diffMonth=${month}
-    diffDay=${day}
-}
-
-# Sets the variables for calculating days until Pascha,
-# using the appropriate method based on the calendar used
-set_diff_dates () {
-    ! (( ns )) && { ! (( greg )) || (( jul )); } && set_diff_dates_julian ||
-            set_diff_dates_gregorian
-}
-
-# Calculates the days between the current date
-# and the date set by ${diffYear}, ${diffMonth}, and ${diffDay}
+# Calculates the days between the current date's ${jdn} and
+# the previous jdn, ${diffJDN}
 diff_dates () {
-    output=$(( ($(${DATE_CMD} -d "${diffYear}-${diffMonth}-${diffDay}" +%s)- $(date -d "00:00" +%s))/86400 ))
+    diffJDN=$jdn
+
+    IFS=/ read -r year month day <<EOF
+$(date +%Y/%m/%d)
+EOF
+    gregorian_to_JDN
+
+    output=$(( diffJDN - jdn ))
+
+    jdn=$diffJDN
+    unset diffJDN
 }
 
 # Calculates the days until Pascha for next year, from the current date
 date_next_pascha () {
-    local monthPascha=${month}
-    local dayPascha=${day}
+    oldJDN=$jdn
 
-    (( year++ ))
+    read -r year <<EOF
+$(date +%Y)
+EOF
+    year=$(( year + 1 ))
     calculate_pascha
-    set_diff_dates
-    (( year-- ))
+    get_JDN
     diff_dates
 
-    month=${monthPascha}
-    day=${dayPascha}
-
+    jdn=$oldJDN
+    unset oldJDN
 }
 
 # Calculates the days until Pascha from the current date
 # if Pascha has already past for the current year,
 # it calculates the days until Pascha next year
 days_until () {
-    (( easter )) && name="Days until Easter" || name="Days until Pascha"
+    [ -n "$easter" ] && name="Days until Easter" || name="Days until Pascha"
 
-    set_diff_dates
     diff_dates
 
-    ! (( y )) && [ ${output} -lt 0 ] && date_next_pascha
+    [ -z "$useyear" ] && [ ${output} -lt 0 ] && date_next_pascha
 
-    (( verbose )) && output="${name}: ${output}"
+    [ -n "$verbose" ] && output="${name}: ${output}"
 
     echo "${output}"
 }
@@ -325,62 +483,103 @@ days_until () {
 # Calculates the number of weeks between the Julian and Gregorian
 # dates for Pascha according to the ${year}
 weeks_between () {
-    local monthPascha=${month}
-    local dayPascha=${day}
+    diffJDN=$jdn
     name="Weeks between calendars"
 
-    (( greg )) && ! (( jul )) && julian && julian_to_gregorian &&
-        monthJul=${month} && dayJul=${day} &&
-        monthGreg=${monthPascha} && dayGreg=${dayPascha} &&
-        month=${monthPascha} && day=${dayPascha}
+    year=$inyear
+    if [ -n "$jul" ]
+    then
+        gregorian
+        gregorian_to_JDN
+    else # [ -n "$greg" ]
+        julian
+        julian_to_JDN
+    fi
 
-    (( ns )) && gregorian &&
-        monthGreg=${month} && dayGreg=${day} &&
-        monthJul=${monthPascha} && dayJul=${dayPascha} &&
-        month=${monthPascha} && day=${dayPascha}
+    output=$(( diffJDN - jdn ))
+    [ $output -le 0 ] && output=$(( -1 * output ))
+    output=$(( output/7 ))
 
-    ! (( ns )) && { ! (( greg )) || (( jul )); } && julian_to_gregorian &&
-        monthJul=${month} && dayJul=${day} && gregorian &&
-        monthGreg=${month} && dayGreg=${day} &&
-        month=${monthPascha} && day=${dayPascha}
-
-    output=$(( ($(${DATE_CMD} -d "${year}-${monthJul}-${dayJul}" +%s)- $(${DATE_CMD} -d "${year}-${monthGreg}-${dayGreg}" +%s))/86400/7 ))
-
-    (( verbose )) && output="${name}: ${output}"
+    [ -n "$verbose" ] && output="${name}: ${output}"
 
     echo "${output}"
+
+    jdn=$diffJDN
+    unset diffJDN
+}
+
+##
+## Initialization, option parsing, and main
+##
+
+# Sets the default options if none are passed
+# as well as performs initial cleanup
+defaults () {
+    # Remove extra flags given
+    if [ -n "$jul" ]; then greg=0; fi
+
+    if [ -n "$julDisp" ]
+    then
+        rJulDisp=""
+        gregDisp=""
+    elif [ -n "$rJulDisp" ]; then gregDisp=""; fi
+
+    # Set defaults when no flags given
+    [ -z "$jul" ] && [ -z "$greg" ] && jul=1
+
+    if [ -z "$julDisp" ] && [ -z "$rJulDisp" ] && [ -z "$gregDisp" ]
+    then [ -n "$jul" ] && julDisp=1 || gregDisp=1
+    fi
+
+    # Get current ${inyear} when none given
+    [ -z "${inyear}" ] && inyear="$(date +%Y)"
+
+    # Remove leading zeroes from ${inyear}
+    inyear=${inyear%"${inyear#[+-]}"}${inyear#"${inyear%%[!0+-]*}"}
+    [ -z "${inyear}" ] || [ "${inyear}" = "-" ] || [ "${inyear}" = "+" ]&& inyear=0
+
+    # set ${year} (to be used in calculation) to ${inyear}
+    year=$inyear
 }
 
 # Calculates and prints the appropriate dates according to the options
 main () {
+    defaults
     calculate_pascha
-    ! (( x )) && print
-    (( daysUntil )) && days_until
-    (( weeksBetween )) && weeks_between
+    get_JDN_If_Necessary
+    get_Display
+    [ -z "$x" ] && print
+    [ -n "$daysUntil" ] && days_until
+    [ -n "$weeksBetween" ] && weeks_between
 
-    (( meat )) && meatfare
-    (( cheese )) && cheesefare
-    (( ash )) && ash_wednesday
-    (( chron )) && chronological_pascha
-    (( mid )) && midfeast
-    (( leave )) && leavetaking
-    (( asc )) && ascension
-    (( pent )) && pentecost
+    [ -n "$meat" ] && meatfare
+    [ -n "$cheese" ] && cheesefare
+    [ -n "$ash" ] && ash_wednesday
+    [ -n "$chron" ] && chronological_pascha
+    [ -n "$mid" ] && midfeast
+    [ -n "$leave" ] && leavetaking
+    [ -n "$asc" ] && ascension
+    [ -n "$pent" ] && pentecost
 }
 
 ### Option parsing
 
-while getopts "jJgbsdDmcaMlApxXvVy:h" o; do
+while getopts "jgJRGbsdDmcaMlApxXvVS:y:h" o; do
     case "${o}" in
         j)
             jul=1
             ;;
-        J)
-            jul=1
-            ns=1
-            ;;
         g)
             greg=1
+            ;;
+        J)
+            julDisp=1
+            ;;
+        R)
+            rJulDisp=1
+            ;;
+        G)
+            gregDisp=1
             ;;
         b)
             byz=1
@@ -430,9 +629,12 @@ while getopts "jJgbsdDmcaMlApxXvVy:h" o; do
             easter=1
             verbose=1
             ;;
+        S)
+            sep=${OPTARG}
+            ;;
         y)
-            year=${OPTARG}
-            y=1
+            inyear=${OPTARG}
+            useyear=1
             ;;
         h)
             usage
