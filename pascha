@@ -441,6 +441,10 @@ diff_dates () {
     IFS=/ read -r year month day <<EOF
 $(date +%Y/%m/%d)
 EOF
+    year=${year%"${year#-}"}${year#"${year%%[!0-]*}"}
+    month=${month#0*}
+    day=${day#0*}
+
     gregorian_to_JDN
 
     output=$(( diffJDN - jdn ))
