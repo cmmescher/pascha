@@ -115,7 +115,7 @@ be worked on.
   - Changed interface to separate specification of calendar for calculation and
     calendar for display.
     - `-j` and `-g` are now used to specify the calendar for calculation.
-    - `-J` as well as new flags `-R` and `-G` are now used to specift the
+    - `-J` as well as new flags `-R` and `-G` are now used to specify the
       calendar for display.
     - The old behavior of `-j` and `-g` are preserved because when no output
       calendar is specified, `pascha` defaults to using the calendar given for
