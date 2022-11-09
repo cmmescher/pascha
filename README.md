@@ -79,14 +79,17 @@ any of these, please let me know, so this can be updated.
 
 ## Version
 
+- v2.1
+Released October 27th, 7531 (2022) O.S. (November 9th, 2022 N.S.).
+
 - v2.0
-Released May 19th 2021 O.S. (June 1st, 2021 N.S.) during Paschaltide.
+Released May 19th, 7529 (2021) O.S. (June 1st, 2021 N.S.) during Paschaltide.
 
 - v1.3
-Released June 10th, 2020 O.S. (June 23rd, 2020 N.S.).
+Released June 10th, 7528 (2020) O.S. (June 23rd, 2020 N.S.).
 
 - v1.2, 1.1, 1.0
-First released publicly on Pascha 2020 (April 19, 2020 N.S.).
+First released publicly on Pascha 7528 (2020) (April 19, 2020 N.S.).
 
 ## Author
 
@@ -94,7 +97,7 @@ Written by Christopher Michael Mescher orginally in 2020.
 
 ## Copyright and License
 
-Copyright © 2020, 2021 Christopher Michael Mescher.
+Copyright © 2020, 2021, 2022 Christopher Michael Mescher.
 
 License [GPLv3+](https://gnu.org/licenses/gpl.html).
 
@@ -105,6 +108,9 @@ reported to `echo \<pascha-mescher+faith\>|sed s/\+/./g\;s/\-/@/` and they will
 be worked on.
 
 ## Changelog
+
+- v2.1
+  - Fix incorrect calendar for calculation when both Julian calculation (`-j`) and Gregorian display (`-G`) are given.
 
 - v2.0
   - Near total rewrite of internals, especially the calendar conversion
