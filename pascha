@@ -3,7 +3,7 @@
 # Version 2.0
 #
 # pascha - the date of Pascha (Easter)
-# Copyright (C) 2020, 2021 Christopher Michael Mescher
+# Copyright (C) 2020, 2021, 2022 Christopher Michael Mescher
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -520,7 +520,7 @@ weeks_between () {
 # as well as performs initial cleanup
 defaults () {
     # Remove extra flags given
-    if [ -n "$jul" ]; then greg=0; fi
+    if [ -n "$jul" ]; then greg=""; fi
 
     if [ -n "$julDisp" ]
     then
@@ -544,6 +544,7 @@ defaults () {
 
     # set ${year} (to be used in calculation) to ${inyear}
     year=$inyear
+
 }
 
 # Calculates and prints the appropriate dates according to the options
