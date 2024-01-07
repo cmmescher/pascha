@@ -73,8 +73,7 @@ Please see `man pascha` for more information.
 
 ## Compatibility
 
-Pascha has only been tested on GNU+Linux systems. It may work on MacOS, BSD,
-or other Unix-like operating systems, but it may not. If you do get it to run on
+Pascha has been tested on GNU+Linux, FreeBSD, and OpenBSD systems. It may work on MacOS or others, but it may not. If you do get it to run on
 any of these, please let me know, so this can be updated.
 
 ## Version
@@ -93,7 +92,7 @@ First released publicly on Pascha 7528 (2020) (April 19, 2020 N.S.).
 
 ## Author
 
-Written by Christopher Michael Mescher orginally in 2020.
+Written by Christopher Michael Mescher originally in 2020.
 
 ## Copyright and License
 
